@@ -168,9 +168,9 @@ Read `.swarm/config/seq.json`. If the file is missing or `enabled` is `false`, s
 
 | Trigger point | Command |
 | --- | --- |
-| After creating the initial `run.status.json` | `emit-seq-event.ps1 -RunId {runId} -EventType run-started` |
-| After `handoff.json` is written for each step | `emit-seq-event.ps1 -RunId {runId} -EventType step-completed` |
-| When setting `outcome: failed` in `run.status.json` | `emit-seq-event.ps1 -RunId {runId} -EventType run-failed` |
+| After creating the initial `run.status.json` | `powershell -File scripts/emit-seq-event.ps1 -RunId {runId} -EventType run-started` |
+| After `handoff.json` is written for each step | `powershell -File scripts/emit-seq-event.ps1 -RunId {runId} -EventType step-completed` |
+| When setting `outcome: failed` in `run.status.json` | `powershell -File scripts/emit-seq-event.ps1 -RunId {runId} -EventType run-failed` |
 
 The script reads `run.status.json`, `handoff.json`, and the current step's result file to construct the CLEF event. No JSON construction is required from the Manager. All events are tagged `@sc = "Swarm"`. Filter in Seq UI with `@sc = 'Swarm'`.
 
