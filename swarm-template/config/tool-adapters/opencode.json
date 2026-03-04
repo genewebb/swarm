@@ -1,0 +1,8 @@
+{
+  "tool": "opencode",
+  "supportsNamedSubagents": "unknown_or_configurable",
+  "supportsSlashCommands": "unknown_or_configurable",
+  "supportsMcp": "unknown_or_configurable",
+  "supportsAgentMode": "unknown_or_configurable",
+  "collapseConstraintReview": true
+}

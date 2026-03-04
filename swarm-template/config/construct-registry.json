@@ -1,0 +1,382 @@
+{
+  "version": 1,
+  "constructs": [
+    {
+      "id": "rule.swarm_delegation",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/base/agents/swarm-delegation.mdc",
+      "scope": "core",
+      "phases": ["invoke"],
+      "severity": "required",
+      "summary": "When /swarm is used, delegate to Manager via mcp_task; do not implement yourself."
+    },
+    {
+      "id": "rule.no_guessing",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/base/agents/no-guessing.mdc",
+      "scope": "core",
+      "phases": ["planning", "implementation", "review", "verify"],
+      "severity": "required",
+      "summary": "Do not guess; verify before proceeding."
+    },
+    {
+      "id": "rule.only_change_relevant_code",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/base/coding/code-modification.mdc",
+      "scope": "core",
+      "phases": ["planning", "implementation", "review", "verify"],
+      "severity": "required",
+      "summary": "Only modify code directly relevant to the request; no placeholders or incomplete code."
+    },
+    {
+      "id": "rule.clean_code_guidelines",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/base/coding/clean-code-guidelines.mdc",
+      "scope": "core",
+      "phases": ["planning", "implementation", "review", "verify"],
+      "severity": "required",
+      "summary": "DRY, naming, structure, error handling, single responsibility."
+    },
+    {
+      "id": "rule.code_behind_separation",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/blazor/ui/code-behind-separation-rules.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "required",
+      "summary": "Blazor: code-behind separation required; no IRestClient in pages."
+    },
+    {
+      "id": "rule.approved_icons",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/blazor/ui/approved-icons.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "required",
+      "summary": "Material Symbols only; no Bootstrap icons."
+    },
+    {
+      "id": "rule.sql_data_access",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/dotnet/coding/sql-data-access.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review", "verify"],
+      "severity": "required",
+      "summary": "Use SqlHelper for all raw SQL; parameterized queries."
+    },
+    {
+      "id": "rule.external_api_patterns",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/dotnet/coding/external-api-patterns.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "required",
+      "summary": "Patterns for external REST API usage."
+    },
+    {
+      "id": "rule.entity_name_constants",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/dotnet/coding/entity-name-constants.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "required",
+      "summary": "Use EntityNames and FieldNames constants."
+    },
+    {
+      "id": "rule.domain_values",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/base/business-rules/domain-values.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "required",
+      "summary": "Never hard-code domain values; fetch from database or config."
+    },
+    {
+      "id": "rule.domain_values_myapp",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/solutions/myapp/business-rules/domain-values-rule.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "required",
+      "summary": "Project-specific domain values guidance (thin wrapper)."
+    },
+    {
+      "id": "rule.no_scenario_config_cache",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/solutions/myapp/business-rules/no-scenario-config-cache.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "required",
+      "summary": "No scenario config caching in certain contexts."
+    },
+    {
+      "id": "rule.central_service_registration",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/dotnet/coding/central-service-registration.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "required",
+      "summary": "Register in WebModuleRegistrar; use RegisterAllServices in tests."
+    },
+    {
+      "id": "rule.single_secret_provider",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/dotnet/configuration/single-secret-provider.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "required",
+      "summary": "Single secret provider pattern."
+    },
+    {
+      "id": "rule.database_schema_logging_table",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/dotnet/coding/database-schema-logging-table.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "required",
+      "summary": "Standard logging table schema."
+    },
+    {
+      "id": "rule.string_constants",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/dotnet/coding/string-constants.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "required",
+      "summary": "No repeated string literals; extract to constants."
+    },
+    {
+      "id": "rule.format_json",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/base/formatting/format-json.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "recommended",
+      "summary": "JSON formatting conventions."
+    },
+    {
+      "id": "rule.testing_setup_overview",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/dotnet/testing/testing-setup-overview.mdc",
+      "scope": "domain",
+      "phases": ["planning", "implementation", "review"],
+      "severity": "required",
+      "summary": "Three-tier testing model (unit/integration/functional)."
+    },
+    {
+      "id": "rule.single_test_project",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/dotnet/testing/single-test-project.mdc",
+      "scope": "domain",
+      "phases": ["planning", "implementation", "review"],
+      "severity": "required",
+      "summary": "One *.Testing project per repo; default model."
+    },
+    {
+      "id": "rule.testing_unit_project",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/dotnet/testing/testing-unit-project.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "required",
+      "summary": "Unit test project structure."
+    },
+    {
+      "id": "rule.testing_integration_project",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/dotnet/testing/testing-integration-project.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "required",
+      "summary": "Integration test project structure."
+    },
+    {
+      "id": "rule.testing_functional_project",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/dotnet/testing/testing-functional-project.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "required",
+      "summary": "Functional test project structure."
+    },
+    {
+      "id": "rule.running_tests",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/dotnet/testing/running-tests.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review", "verify"],
+      "severity": "required",
+      "summary": "Test execution commands and patterns."
+    },
+    {
+      "id": "rule.class_and_code_documentation_rules",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/dotnet/coding/class-and-code-documentation-rules.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "required",
+      "summary": "XML docs and class header format."
+    },
+    {
+      "id": "rule.cursor_documentation_location",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/base/documentation/cursor-documentation-location.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "required",
+      "summary": "Cursor-generated docs go in .cursor/documentation/your-project/."
+    },
+    {
+      "id": "rule.emoji_set",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/base/markdown/emoji-set.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "recommended",
+      "summary": "Approved emoji set for DevOps work items."
+    },
+    {
+      "id": "rule.code_block_style_guide",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/base/markdown/code-block-style-guide.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "recommended",
+      "summary": "Code block formatting for markdown."
+    },
+    {
+      "id": "rule.obsidian_markdown_guide",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/base/markdown/obsidian-markdown-guide.mdc",
+      "scope": "domain",
+      "phases": ["implementation", "review"],
+      "severity": "informational",
+      "summary": "Obsidian markdown conventions."
+    },
+    {
+      "id": "rule.solution_review",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/dotnet/documentation/solution-review.mdc",
+      "scope": "domain",
+      "phases": ["review", "verify"],
+      "severity": "recommended",
+      "summary": "Solution review documentation."
+    },
+    {
+      "id": "rule.work_items",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/dotnet/devops/work-items.mdc",
+      "scope": "domain",
+      "phases": ["planning", "implementation"],
+      "severity": "recommended",
+      "summary": "Azure DevOps work item structure and emoji."
+    },
+    {
+      "id": "rule.base_structure",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/base/projects/_base-structure.mdc",
+      "scope": "domain",
+      "phases": ["planning", "implementation"],
+      "severity": "recommended",
+      "summary": "Base project structure conventions."
+    },
+    {
+      "id": "rule.myapp_web_structure",
+      "type": "rule",
+      "sourcePath": ".cursor/rules/solutions/myapp/projects/myapp-web/structure.mdc",
+      "scope": "domain",
+      "phases": ["planning", "implementation"],
+      "severity": "recommended",
+      "summary": "MyApp.Web project structure."
+    },
+    {
+      "id": "mcp.get_entity_definition",
+      "type": "mcp-reference",
+      "sourcePath": ".cursor/rules/mcp/your-mcp/get-entity-definition.mdc",
+      "scope": "domain",
+      "phases": ["implementation"],
+      "severity": "informational",
+      "summary": "External API MCP entity definition lookup."
+    },
+    {
+      "id": "mcp.scenario_entity_attributes",
+      "type": "mcp-reference",
+      "sourcePath": ".cursor/rules/mcp/your-mcp/scenario-entity-attributes.mdc",
+      "scope": "domain",
+      "phases": ["implementation"],
+      "severity": "informational",
+      "summary": "Scenario entity attributes via MCP."
+    },
+    {
+      "id": "command.swarm",
+      "type": "command",
+      "sourcePath": ".cursor/commands/swarm.md",
+      "scope": "operator",
+      "phases": ["invoke"],
+      "severity": "informational",
+      "summary": "Orchestrates full workflow: plan → implement → review → test → verify → push → PR."
+    },
+    {
+      "id": "command.pr_review",
+      "type": "command",
+      "sourcePath": ".cursor/commands/pr-review.md",
+      "scope": "operator",
+      "phases": ["invoke"],
+      "severity": "informational",
+      "summary": "Comprehensive PR review using Azure DevOps MCP; supports local changes before PR."
+    },
+    {
+      "id": "command.task_generator",
+      "type": "command",
+      "sourcePath": ".cursor/commands/task-generator.md",
+      "scope": "operator",
+      "phases": ["invoke"],
+      "severity": "informational",
+      "summary": "Generates tasks from descriptions or plans."
+    },
+    {
+      "id": "command.bug_generator",
+      "type": "command",
+      "sourcePath": ".cursor/commands/bug-generator.md",
+      "scope": "operator",
+      "phases": ["invoke"],
+      "severity": "informational",
+      "summary": "Generates bug reports from descriptions or reproduction steps."
+    },
+    {
+      "id": "skill.azure_prepare",
+      "type": "skill",
+      "scope": "operator",
+      "severity": "informational",
+      "summary": "Azure app preparation: infra code, azure.yaml, Dockerfiles (external AGENTS skill)."
+    },
+    {
+      "id": "skill.azure_validate",
+      "type": "skill",
+      "scope": "operator",
+      "severity": "informational",
+      "summary": "Pre-deployment validation for Azure apps (external AGENTS skill)."
+    },
+    {
+      "id": "skill.azure_deploy",
+      "type": "skill",
+      "scope": "operator",
+      "severity": "informational",
+      "summary": "Execute Azure deployments: azd up, azd deploy (external AGENTS skill)."
+    },
+    {
+      "id": "skill.appinsights_instrumentation",
+      "type": "skill",
+      "scope": "operator",
+      "severity": "informational",
+      "summary": "Azure Application Insights instrumentation guidance (external AGENTS skill)."
+    },
+    {
+      "id": "skill.azure_diagnostics",
+      "type": "skill",
+      "scope": "operator",
+      "severity": "informational",
+      "summary": "Debug and troubleshoot Azure production issues (external AGENTS skill)."
+    }
+  ]
+}

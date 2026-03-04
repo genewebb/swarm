@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "standards": {
+    "required": true,
+    "path": ".swarm/standards.md",
+    "rejectIfMissingOrPlaceholder": true
+  },
+  "git": {
+    "requireCleanWorkingTree": true,
+    "allowUntrackedFiles": true,
+    "branching": {
+      "enabledByDefault": true,
+      "branchPrefix": "swarm/",
+      "worktreeNameTemplate": "{workspace}-swarm-{friendlyName}"
+    },
+    "commit": {
+      "requireConventionalCommits": false,
+      "signOff": false
+    }
+  },
+  "loopControl": {
+    "maxLoops": 3,
+    "maxReplans": 2
+  },
+  "fileAccess": {
+    "defaultPolicy": "deny",
+    "allow": [
+      "**/*"
+    ],
+    "deny": [
+      "**/.env",
+      "**/.env.*",
+      "**/*secret*",
+      "**/*credentials*",
+      "**/node_modules/**",
+      "**/bin/**",
+      "**/obj/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/.git/**",
+      "**/.swarm/runs/**"
+    ],
+    "requireAllowedFilesFromHandoff": true
+  },
+  "commands": {
+    "deny": [
+      "rm -rf",
+      "del /s",
+      "format",
+      "diskpart",
+      "sudo",
+      "curl *| sh",
+      "powershell *iex*",
+      "Invoke-Expression"
+    ],
+    "allowNetwork": false
+  },
+  "qualityGates": {
+    "requireReviewerApproval": true,
+    "requireTestsPassBeforePR": true,
+    "requireLintTypecheckIfConfigured": true
+  },
+  "pr": {
+    "_doc": "Azure DevOps: submitMethod manual—branch is pushed; create PR via web. Use gh/glab/bb if repo is on GitHub/GitLab.",
+    "submitMethod": "manual",
+    "createCommand": null,
+    "createOnSuccess": true,
+    "baseBranch": "main",
+    "remote": "origin",
+    "createDraft": false,
+    "titleTemplate": "[swarm] {goal}",
+    "bodyTemplate": "Goal: {goal}\n\nSummary:\n{summary}\n\nArtifacts:\n- Run folder: .swarm/runs/{runId}\n- Plan: .swarm/runs/{runId}/plan.json\n",
+    "labels": []
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "tester.schema.json",
+  "title": "Tester Result",
+  "description": "Schema for tester.result.json produced by the tester subagent",
+  "type": "object",
+  "required": ["subagent", "status", "summary"],
+  "additionalProperties": false,
+  "properties": {
+    "subagent": {
+      "type": "string",
+      "const": "tester",
+      "description": "Identifies the producing agent"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["passed", "failed", "error", "skipped"],
+      "description": "passed if all tests passed; failed if tests failed; error if test run could not complete; skipped if no new test files were present in this sub-plan"
+    },
+    "run-id": {
+      "type": "string",
+      "description": "The run id from context (if available)"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Brief summary of the test run"
+    },
+    "command": {
+      "type": "string",
+      "description": "The test command that was run"
+    },
+    "exit-code": {
+      "type": "integer",
+      "description": "Exit code of the test command"
+    },
+    "output": {
+      "type": "string",
+      "description": "Captured stdout from the test run (abbreviated if long)"
+    },
+    "failures": {
+      "type": "array",
+      "description": "List of failed tests or failure details",
+      "items": { "type": "string" }
+    },
+    "notes": { "type": "string", "description": "Optional notes" }
+  }
+}

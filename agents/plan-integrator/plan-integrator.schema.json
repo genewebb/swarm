@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Plan Integration Result",
+  "type": "object",
+  "required": ["integratedPlanPath", "integrationLog", "status"],
+  "properties": {
+    "integratedPlanPath": { "type": "string", "description": "Path to the integrated-plan.md output" },
+    "integrationLog": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["groupId", "stepId", "changeType", "appliedRuleId"],
+        "properties": {
+          "groupId": { "type": "string" },
+          "stepId": { "type": "string" },
+          "changeType": { "type": "string", "enum": ["additive", "narrowing", "sequencing", "incompatible"] },
+          "appliedRuleId": { "type": "string" },
+          "resolution": { "type": "string", "description": "How the conflict was resolved (if applicable)" }
+        }
+      }
+    },
+    "status": { "type": "string", "enum": ["integrated", "blocked", "partially-integrated"] },
+    "escalationNotice": {
+      "type": ["object", "null"],
+      "properties": {
+        "blockingGroupId": { "type": "string" },
+        "blockReasons": { "type": "array", "items": { "type": "string" } },
+        "humanActionRequired": { "type": "string" }
+      }
+    }
+  }
+}

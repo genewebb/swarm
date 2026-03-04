@@ -1,0 +1,121 @@
+{
+  "subagents": [
+    {
+      "name": "core-planner",
+      "description": "Produces the initial draft plan using core invariants only. Outputs to .swarm/runs/{id}/plan.json.",
+      "invoke": "Use the core-planner subagent with the given input",
+      "inputType": "user-task",
+      "first-step": true,
+      "planPath": ".cursor/agents/core-planner.md",
+      "schemaPath": ".cursor/agents/plan/planner.result.schema.json"
+    },
+    {
+      "name": "constraint-reviewer",
+      "description": "Applies one domain rule pack to a draft plan. Outputs constraint-reviewer.{groupId}.result.json.",
+      "invoke": "Use the constraint-reviewer subagent with the path to handoff.json",
+      "inputType": "handoff",
+      "planPath": ".cursor/agents/constraint-reviewer.md",
+      "schemaPath": ".cursor/agents/constraint-reviewer/constraint-reviewer.schema.json"
+    },
+    {
+      "name": "plan-integrator",
+      "description": "Merges planner and constraint reviewer outputs into the integrated execution plan.",
+      "invoke": "Use the plan-integrator subagent with the path to handoff.json",
+      "inputType": "handoff",
+      "planPath": ".cursor/agents/plan-integrator.md",
+      "schemaPath": ".cursor/agents/plan-integrator/plan-integrator.schema.json"
+    },
+    {
+      "name": "plan-decomposer",
+      "description": "Splits large cross-project plans into context-sized sub-plans when threshold exceeded.",
+      "invoke": "Use the plan-decomposer subagent with the path to handoff.json",
+      "inputType": "handoff",
+      "planPath": ".cursor/agents/plan-decomposer.md",
+      "schemaPath": ".cursor/agents/plan-decomposer/plan-decomposer.result.schema.json"
+    },
+    {
+      "name": "implementor",
+      "description": "Implements tasks from handoff.json. Input: path to handoff.json. Outputs implementor.result.json.",
+      "invoke": "Use the implementor subagent with the path to handoff.json",
+      "inputType": "handoff",
+      "planPath": ".cursor/agents/implementor.md",
+      "schemaPath": ".cursor/agents/implementor/implementor.schema.json"
+    },
+    {
+      "name": "reviewer",
+      "description": "Reviews changes. Input: path to handoff.json. Verifies conformance to standards. Outputs reviewer.result.json.",
+      "invoke": "Use the reviewer subagent with the path to handoff.json",
+      "inputType": "handoff",
+      "planPath": ".cursor/agents/reviewer.md",
+      "schemaPath": ".cursor/agents/reviewer/reviewer.schema.json"
+    },
+    {
+      "name": "tester",
+      "description": "Runs the project's testing suite. Input: path to handoff.json. Outputs tester.result.json.",
+      "invoke": "Use the tester subagent with the path to handoff.json",
+      "inputType": "handoff",
+      "planPath": ".cursor/agents/tester.md",
+      "schemaPath": ".cursor/agents/tester/tester.schema.json"
+    },
+    {
+      "name": "verifier",
+      "description": "Validates completed work after tester completes. Input: path to handoff.json. Confirms implementations functional and can attribute tester failures. Outputs verifier.result.json. Last stop.",
+      "invoke": "Use the verifier subagent with the path to handoff.json",
+      "inputType": "handoff",
+      "planPath": ".cursor/agents/verifier.md",
+      "schemaPath": ".cursor/agents/verifier/verifier.schema.json"
+    }
+  ],
+  "handoff-to": {
+    "core-planner": ["constraint-reviewer"],
+    "constraint-reviewer": ["constraint-reviewer", "plan-integrator"],
+    "plan-integrator": ["plan-decomposer"],
+    "plan-decomposer": ["implementor"],
+    "implementor": ["reviewer"],
+    "reviewer": ["implementor", "tester"],
+    "tester": ["verifier"],
+    "verifier": []
+  },
+  "handoff-notes": {
+    "core-planner": "Hand off to constraint-reviewer with draft plan and activeGroupIds.",
+    "constraint-reviewer": "If remainingConstraintGroupIds non-empty: hand off to self for next group. Else: hand off to plan-integrator.",
+    "plan-integrator": "Hand off to plan-decomposer with integrated plan.",
+    "plan-decomposer": "Hand off to implementor (passthrough if 1 sub-plan; else Manager iterates over sub-plans).",
+    "implementor": "Hand off only to reviewer.",
+    "reviewer": "If approved: hand off to tester. If rejected: hand off to implementor with issues to fix.",
+    "tester": "Hand off to verifier after tester completes. Include tester status/details in the handoff; failed tests still lead to verifier when attribution must be assessed.",
+    "verifier": "Last stop. Hands off to no other agent."
+  },
+  "loop-control": {
+    "fromAgent": "reviewer",
+    "toAgent": "implementor",
+    "maxLoops": 3,
+    "escalation-action": "needs-human",
+    "countField": "review-fix-loop-count"
+  },
+  "plan-validation": { "maxReplans": 1, "escalation-action": "needs-human" },
+  "parallelization": {
+    "enabled": true,
+    "rules": [
+      {
+        "maxConcurrent": 4,
+        "requireDisjointFiles": true,
+        "respectDependencies": true
+      }
+    ]
+  },
+  "behavior": {
+    "planning": {
+      "enabled": true,
+      "planResultField": "plan-path",
+      "planSchemaPath": ".cursor/agents/plan/plan.schema.json",
+      "replanCountField": "plan-replan-count"
+    },
+    "branching": { "enabled": true, "useCurrentBranch": true, "deferCommitToUser": true, "worktreePathTemplate": ".swarm/worktrees/{friendly-name}" }
+  },
+  "escalation-actions": {
+    "needs-human": "Stop with outcome needs-human; report that human review is required.",
+    "downgrade-scope": "Stop and suggest reducing scope; leave partial work.",
+    "manual-intervention-required": "Stop; write manual-intervention-required.result.json with context for human to resume."
+  }
+}

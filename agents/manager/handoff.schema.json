@@ -1,0 +1,160 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "handoff.schema.json",
+  "title": "Handoff",
+  "description": "Schema for handoff.json and immutable archived handoffs such as handoff.step-0003.constraint-reviewer.json",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "handoffId",
+    "from",
+    "to",
+    "step",
+    "iteration",
+    "input",
+    "artifacts",
+    "context"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "type": "string", "const": "1.0" },
+    "handoffId": {
+      "type": "string",
+      "description": "Unique identifier for this handoff (GUID). Generate a new value for every created handoff; never reuse it when updating handoff.json for a later transition."
+    },
+    "from": {
+      "type": "string",
+      "description": "Agent that created this handoff (e.g. manager)"
+    },
+    "to": { "type": "string", "description": "Subagent to invoke next" },
+    "step": {
+      "type": "integer",
+      "description": "Monotonically increasing handoff sequence number within the run. Increment for every new handoff, including self-handoffs and retries."
+    },
+    "iteration": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Iteration number"
+    },
+    "input": {
+      "type": "string",
+      "description": "Input to pass to the receiving agent"
+    },
+    "artifacts": {
+      "type": "object",
+      "description": "Context pack path. Subagents read this only; rules are filtered by activeGroupIds. Do not fall back to the full rule tree.",
+      "required": ["contextPackPath"],
+      "additionalProperties": false,
+      "properties": {
+        "contextPackPath": {
+          "type": "string",
+          "description": "Path to context.pack.md; condensed context for subagents"
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "description": "Relevant context from previous steps",
+      "required": ["allowedFiles"],
+      "properties": {
+        "allowedFiles": {
+          "type": "array",
+          "description": "Guard rail: only these files may be touched by the receiving agent",
+          "items": { "type": "string" }
+        },
+        "runId": { "type": "string" },
+        "planId": { "type": "string" },
+        "stepSummary": { "type": "string" },
+        "implementorSummary": {
+          "type": "string",
+          "description": "Deprecated: use stepSummary"
+        },
+        "filesChanged": { "type": "array", "items": { "type": "string" } },
+        "commitSha": { "type": ["string", "null"] },
+        "branch": {
+          "type": "string",
+          "description": "Branch name for this run (e.g. swarm/add-user-auth)"
+        },
+        "worktreePath": {
+          "type": "string",
+          "description": "Absolute path to the worktree directory when branching enabled; subagents must operate from this path"
+        },
+        "deferCommitToUser": {
+          "type": "boolean",
+          "description": "When true, implementor does NOT commit; leaves changes for user to review and commit"
+        },
+        "activeGroupIds": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Rule group IDs activated for this task (from Phase 1 trigger detection)"
+        },
+        "activeRuleIds": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Specific rule construct IDs from the registry, resolved from activeGroupIds"
+        },
+        "activeCommandIds": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Command construct IDs when the task routes through a command; empty otherwise"
+        },
+        "activeSkillIds": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "External AGENTS skill IDs when selected for this task; empty otherwise"
+        },
+        "currentConstraintGroupId": {
+          "type": ["string", "null"],
+          "description": "Only present during Phase 3 constraint review; the group currently being reviewed"
+        },
+        "remainingConstraintGroupIds": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Only present during Phase 3; groups still awaiting constraint review"
+        },
+        "subPlanIndex": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Current sub-plan index (1-based) when plan was decomposed"
+        },
+        "subPlanTotal": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Total number of sub-plans when plan was decomposed"
+        },
+        "subPlanScope": {
+          "type": "object",
+          "description": "Scope of current sub-plan",
+          "properties": {
+            "projects": { "type": "array", "items": { "type": "string" } },
+            "solutionPaths": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "priorSubPlanSummaries": {
+          "type": "array",
+          "description": "Summary of prior sub-plans for context when running sub-plan N",
+          "items": {
+            "type": "object",
+            "properties": {
+              "index": { "type": "integer" },
+              "scopeLabel": { "type": "string" },
+              "summary": { "type": "string" }
+            }
+          }
+        },
+        "decomposedFromPlanId": {
+          "type": "string",
+          "description": "ID of the original master plan when decomposed"
+        },
+        "templateFromSubPlan": {
+          "type": ["integer", "null"],
+          "description": "Sub-plan index that produced this sub-plan's template (if any)"
+        },
+        "scopedPlanPath": {
+          "type": "string",
+          "description": "Path to the dedicated scoped plan for this sub-plan"
+        }
+      }
+    }
+  }
+}

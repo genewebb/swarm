@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Constraint Reviewer Result",
+  "type": "object",
+  "required": ["groupId", "action", "changes", "annotations", "blockReasons", "reviewedPlanVersion", "timestamp"],
+  "properties": {
+    "groupId": { "type": "string", "description": "The rule group ID reviewed" },
+    "action": { "type": "string", "enum": ["annotate", "modify", "block"] },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["stepId", "changeType", "description", "ruleId", "severity"],
+        "properties": {
+          "stepId": { "type": "string" },
+          "changeType": { "type": "string", "enum": ["add-requirement", "modify-step", "add-step", "remove-step", "reorder"] },
+          "description": { "type": "string" },
+          "ruleId": { "type": "string" },
+          "severity": { "type": "string", "enum": ["required", "recommended", "informational"] }
+        }
+      }
+    },
+    "annotations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["stepId", "note", "ruleId", "severity"],
+        "properties": {
+          "stepId": { "type": "string" },
+          "note": { "type": "string" },
+          "ruleId": { "type": "string" },
+          "severity": { "type": "string", "enum": ["required", "recommended", "informational"] }
+        }
+      }
+    },
+    "blockReasons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["stepId", "reason", "ruleId"],
+        "properties": {
+          "stepId": { "type": "string" },
+          "reason": { "type": "string" },
+          "ruleId": { "type": "string" }
+        }
+      }
+    },
+    "reviewedPlanVersion": { "type": "string" },
+    "timestamp": { "type": "string", "format": "date-time" }
+  }
+}

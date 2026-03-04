@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "implementor.schema.json",
+  "title": "Implementor Result",
+  "description": "Schema for implementor.result.json produced by the implementor subagent",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "subagent",
+    "status",
+    "runId",
+    "handoffId",
+    "iteration",
+    "summary",
+    "filesChanged",
+    "checks"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Schema version"
+    },
+    "subagent": {
+      "type": "string",
+      "const": "implementor",
+      "description": "Identifies the producing agent"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["completed", "partial", "failed"],
+      "description": "Completion status of the implementation"
+    },
+    "runId": { "type": "string", "description": "The run id from the handoff" },
+    "handoffId": {
+      "type": "string",
+      "description": "The handoff this result responds to"
+    },
+    "iteration": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Iteration number from the handoff"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Brief description of what was implemented"
+    },
+    "filesChanged": {
+      "type": "array",
+      "description": "File paths modified or created",
+      "items": { "type": "string" }
+    },
+    "checks": {
+      "type": "object",
+      "description": "Results of lint and typecheck",
+      "properties": {
+        "lint": {
+          "type": "object",
+          "required": ["passed", "command"],
+          "properties": {
+            "passed": { "type": "boolean" },
+            "command": { "type": "string" }
+          }
+        },
+        "typecheck": {
+          "type": "object",
+          "required": ["passed", "command"],
+          "properties": {
+            "passed": { "type": "boolean" },
+            "command": { "type": "string" }
+          }
+        }
+      }
+    },
+    "blockedReason": {
+      "type": ["string", "null"],
+      "description": "Reason implementation was blocked, if any; null when not blocked"
+    },
+    "notes": { "type": "string", "description": "Optional notes" }
+  }
+}

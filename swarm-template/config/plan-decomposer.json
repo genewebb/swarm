@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "decompositionStrategy": "core-then-areas",
+  "fallbackStrategy": "by-lane",
+  "secondFallbackStrategy": "by-project",
+  "triggerThreshold": {
+    "minProjects": 5,
+    "minSteps": 15
+  },
+  "maxSubPlans": 3,
+  "confirmDecompositionWithUser": true,
+  "scope": "all-sln-in-repo",
+  "checkpointing": { "mode": "batch-end" },
+  "failureHandling": "halt-and-resume",
+  "reviewCheckpoints": {
+    "promptBetweenSubPlans": true
+  }
+}

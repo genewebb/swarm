@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "planner.result.schema.json",
+  "title": "Planner Result",
+  "description": "Schema for planner.result.json produced by the planner subagent",
+  "type": "object",
+  "required": ["subagent", "status", "plan-id", "plan-path"],
+  "additionalProperties": false,
+  "properties": {
+    "subagent": { "type": "string", "enum": ["planner", "core-planner"] },
+    "status": { "type": "string", "enum": ["complete", "failed"] },
+    "plan-id": {
+      "type": "string",
+      "description": "Plan GUID (also the run folder name)"
+    },
+    "plan-path": {
+      "type": "string",
+      "description": "Path to plan.json (e.g. .swarm/runs/{id}/plan.json)"
+    }
+  }
+}

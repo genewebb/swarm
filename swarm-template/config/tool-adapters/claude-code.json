@@ -1,0 +1,10 @@
+{
+  "tool": "claude-code",
+  "instructionSurface": "CLAUDE.md",
+  "supportsNamedSubagents": false,
+  "supportsSlashCommands": true,
+  "supportsMcp": true,
+  "supportsAgentMode": true,
+  "collapseConstraintReview": true,
+  "ruleDelivery": "generated-summary-in-CLAUDE.md"
+}

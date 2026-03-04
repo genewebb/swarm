@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "plan-decomposer.result.schema.json",
+  "title": "Plan Decomposer Result",
+  "description": "Schema for plan-decomposer.result.json produced by the Plan Decomposer agent",
+  "type": "object",
+  "required": ["subplansManifestPath", "subPlanCount", "strategy", "decomposed", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "subplansManifestPath": {
+      "type": "string",
+      "description": "Path to subplans.manifest.json"
+    },
+    "subPlanCount": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of sub-plans (1 = passthrough)"
+    },
+    "strategy": {
+      "type": "string",
+      "enum": ["core-then-areas", "by-project", "by-solution", "by-dependency-order"],
+      "description": "Decomposition strategy used"
+    },
+    "decomposed": {
+      "type": "boolean",
+      "description": "True if plan was split into >1 sub-plan"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["completed", "failed"],
+      "description": "Agent completion status"
+    },
+    "runId": {
+      "type": "string",
+      "description": "Run ID for this execution"
+    },
+    "errorMessage": {
+      "type": "string",
+      "description": "Error message when status is failed"
+    }
+  }
+}

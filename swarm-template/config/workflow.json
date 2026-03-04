@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "planner": {
+    "agent": "core-planner",
+    "groupIds": ["core"]
+  },
+  "constraintReview": {
+    "agent": "constraint-reviewer",
+    "parallel": false
+  },
+  "integrator": {
+    "agent": "plan-integrator",
+    "conflictResolutionPrecedence": [
+      "core",
+      "service-architecture",
+      "data-access",
+      "ui-blazor",
+      "testing",
+      "documentation-formatting"
+    ]
+  },
+  "implementation": {
+    "agent": "implementor",
+    "ruleLoadStrategy": "task-triggered"
+  },
+  "fallback": {
+    "collapseConstraintReviewWhenToolLacksSubagents": true
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "tool": "visualstudio",
+  "copilotInstructionsPath": ".github/copilot-instructions.md",
+  "supportsNamedSubagents": false,
+  "supportsSlashCommands": false,
+  "supportsMcp": true,
+  "supportsAgentMode": true,
+  "collapseConstraintReview": true
+}

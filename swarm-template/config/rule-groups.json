@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "groups": [
+    {
+      "id": "core",
+      "description": "True global invariants — no guessing, no placeholders, clean code principles.",
+      "ruleIds": [
+        "rule.no_guessing",
+        "rule.only_change_relevant_code",
+        "rule.clean_code_guidelines"
+      ],
+      "plannerVisible": true,
+      "reviewerVisible": true,
+      "implementorVisible": true
+    },
+    {
+      "id": "service-architecture",
+      "description": "Service registration, DI, configuration, project structure.",
+      "ruleIds": [
+        "rule.central_service_registration",
+        "rule.single_secret_provider",
+        "rule.database_schema_logging_table",
+        "rule.base_structure",
+        "rule.myapp_web_structure"
+      ],
+      "plannerVisible": false,
+      "reviewerVisible": true,
+      "implementorVisible": true
+    },
+    {
+      "id": "data-access",
+      "description": "Data access, REST API, domain values, entity constants.",
+      "ruleIds": [
+        "rule.sql_data_access",
+        "rule.external_api_patterns",
+        "rule.entity_name_constants",
+        "rule.domain_values",
+        "rule.domain_values_myapp",
+        "rule.no_scenario_config_cache",
+        "rule.string_constants",
+        "rule.format_json"
+      ],
+      "plannerVisible": false,
+      "reviewerVisible": true,
+      "implementorVisible": true
+    },
+    {
+      "id": "ui-blazor",
+      "description": "Blazor UI rules — code-behind separation, approved icons.",
+      "ruleIds": [
+        "rule.code_behind_separation",
+        "rule.approved_icons"
+      ],
+      "plannerVisible": false,
+      "reviewerVisible": true,
+      "implementorVisible": true
+    },
+    {
+      "id": "testing",
+      "description": "MSTest, bUnit, three-tier test structure, running tests.",
+      "ruleIds": [
+        "rule.testing_setup_overview",
+        "rule.single_test_project",
+        "rule.testing_unit_project",
+        "rule.testing_integration_project",
+        "rule.testing_functional_project",
+        "rule.running_tests"
+      ],
+      "plannerVisible": false,
+      "reviewerVisible": true,
+      "implementorVisible": true
+    },
+    {
+      "id": "documentation-formatting",
+      "description": "XML docs, markdown, emoji, work items, solution review.",
+      "ruleIds": [
+        "rule.class_and_code_documentation_rules",
+        "rule.cursor_documentation_location",
+        "rule.emoji_set",
+        "rule.code_block_style_guide",
+        "rule.obsidian_markdown_guide",
+        "rule.solution_review",
+        "rule.work_items"
+      ],
+      "plannerVisible": false,
+      "reviewerVisible": true,
+      "implementorVisible": true
+    }
+  ]
+}

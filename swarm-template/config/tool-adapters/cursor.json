@@ -1,0 +1,12 @@
+{
+  "tool": "cursor",
+  "rulesSurface": ".cursor/rules",
+  "commandsSurface": ".cursor/commands",
+  "agentsSurface": ".cursor/agents",
+  "managerConfigPath": ".cursor/agents/manager/config.json",
+  "supportsNamedSubagents": true,
+  "supportsSlashCommands": true,
+  "supportsMcp": true,
+  "supportsAgentMode": true,
+  "collapseConstraintReview": false
+}

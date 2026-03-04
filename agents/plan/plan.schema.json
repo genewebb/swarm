@@ -1,0 +1,129 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "plan.schema.json",
+  "title": "Plan",
+  "description": "Schema for plan output produced by the planner subagent. Contains goal, acceptance criteria, PR lanes, and task lists for agents to perform.",
+  "type": "object",
+  "required": [
+    "id",
+    "description",
+    "friendly-name",
+    "goal",
+    "acceptance-criteria",
+    "lanes",
+    "assumptions",
+    "risks",
+    "out-of-scope"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the plan (UUID/GUID)",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the plan based on the user's input"
+    },
+    "friendly-name": {
+      "type": "string",
+      "description": "Git-friendly name for branches and commits (lowercase, hyphens)",
+      "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$"
+    },
+    "goal": {
+      "type": "string",
+      "description": "Clear restatement of the goal"
+    },
+    "acceptance-criteria": {
+      "type": "array",
+      "description": "Conditions that must be met for the work to be complete",
+      "minItems": 1,
+      "items": { "type": "string" }
+    },
+    "lanes": {
+      "type": "array",
+      "description": "PR lanes (1–3 by default; more only if necessary)",
+      "minItems": 1,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "branch-name",
+          "tasks",
+          "touch-map",
+          "collision-risk",
+          "test-plan-commands"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "branch-name": {
+            "type": "string",
+            "description": "Git-friendly branch name (kebab-case)"
+          },
+          "tasks": {
+            "type": "array",
+            "description": "Ordered tasks for this lane",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["task-id", "description", "files", "dependencies"],
+              "additionalProperties": false,
+              "properties": {
+                "task-id": {
+                  "type": "string",
+                  "description": "Unique identifier for the task"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "What the task accomplishes"
+                },
+                "files": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "minItems": 0,
+                  "description": "Files this task touches"
+                },
+                "dependencies": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "minItems": 0,
+                  "description": "Task IDs that must complete first"
+                }
+              }
+            }
+          },
+          "touch-map": {
+            "type": "array",
+            "description": "Files this lane will touch",
+            "items": { "type": "string" }
+          },
+          "collision-risk": {
+            "type": "string",
+            "description": "Estimate of merge conflict risk with other lanes"
+          },
+          "test-plan-commands": {
+            "type": "array",
+            "description": "Commands to validate this lane",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "description": "Assumptions made when requirements are missing",
+      "items": { "type": "string" }
+    },
+    "risks": {
+      "type": "array",
+      "description": "Known risks or unknowns",
+      "items": { "type": "string" }
+    },
+    "out-of-scope": {
+      "type": "array",
+      "description": "Items explicitly excluded from this plan",
+      "items": { "type": "string" }
+    }
+  }
+}

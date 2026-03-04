@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "plan-decomposer.schema.json",
+  "title": "Subplans Manifest",
+  "description": "Schema for subplans.manifest.json produced by the Plan Decomposer",
+  "type": "object",
+  "required": ["version", "decomposedFromPlanId", "strategy", "subPlans"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "description": "Manifest schema version"
+    },
+    "decomposedFromPlanId": {
+      "type": "string",
+      "description": "ID of the original integrated plan"
+    },
+    "strategy": {
+      "type": "string",
+      "enum": ["core-then-areas", "by-project", "by-solution", "by-dependency-order"],
+      "description": "Decomposition strategy used"
+    },
+    "subPlans": {
+      "type": "array",
+      "description": "Ordered list of sub-plans; implementor runs once per sub-plan",
+      "items": {
+        "type": "object",
+        "required": ["index", "scopeLabel", "projects"],
+        "additionalProperties": false,
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "1-based sub-plan index"
+          },
+          "scopeLabel": {
+            "type": "string",
+            "description": "Human-readable scope label (e.g. Core, TestData, Web)"
+          },
+          "projects": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Project names in this sub-plan's scope"
+          },
+          "dependsOn": {
+            "type": "array",
+            "items": { "type": "integer" },
+            "description": "Sub-plan indices this depends on (empty for first)"
+          },
+          "templateForLaterSubPlans": {
+            "type": "boolean",
+            "description": "If true, this sub-plan's output templates files for later sub-plans"
+          },
+          "allowedFiles": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Guard rail: only these files may be touched by implementor for this sub-plan"
+          },
+          "scopedPlanPath": {
+            "type": "string",
+            "description": "Path to the dedicated scoped plan for this sub-plan"
+          }
+        }
+      }
+    }
+  }
+}
