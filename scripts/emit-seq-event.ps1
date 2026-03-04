@@ -196,6 +196,35 @@ switch ($EventType) {
         $contextPack = Read-TextFile $contextPackPath
         if ($contextPack) { $clefEvent["ContextPack"] = $contextPack }
 
+        # --- Step-specific output documents ---
+        # Attach the primary output document(s) for plan-producing steps so the full
+        # content is readable in Seq without opening the run directory.
+        switch ($currentStep) {
+            "core-planner" {
+                $doc = Read-JsonFile (Join-Path $runDir "plan.json")
+                if ($doc) { $clefEvent["Plan"] = $doc }
+            }
+            "plan-integrator" {
+                $doc = Read-TextFile (Join-Path $runDir "integrated-plan.md")
+                if ($doc) { $clefEvent["IntegratedPlan"] = $doc }
+                $log = Read-JsonFile (Join-Path $runDir "integration-log.json")
+                if ($log) { $clefEvent["IntegrationLog"] = $log }
+            }
+            "plan-decomposer" {
+                $manifest = Read-JsonFile (Join-Path $runDir "subplans.manifest.json")
+                if ($manifest) { $clefEvent["SubplansManifest"] = $manifest }
+                # Attach each scoped plan file (scoped-plan-1.md, scoped-plan-2.md, ...)
+                $scopedFiles = @(Get-ChildItem $runDir -Filter "scoped-plan-*.md" 2>$null | Sort-Object Name)
+                foreach ($f in $scopedFiles) {
+                    $content = Read-TextFile $f.FullName
+                    $propName = ($f.BaseName -replace '-(\d+)$', '$1') -replace '-', ''
+                    # e.g. scoped-plan-1 -> ScopedPlan1
+                    $propName = "ScopedPlan" + ($f.BaseName -replace '.*-', '')
+                    if ($content) { $clefEvent[$propName] = $content }
+                }
+            }
+        }
+
         # --- PhaseKey ---
         $subPlanIndex = if ($status.PSObject.Properties['subPlanIndex']) { $status.subPlanIndex } else { $null }
         $phaseKey     = if ($subPlanIndex) { "$currentStep.subplan-$subPlanIndex" } else { $currentStep }
