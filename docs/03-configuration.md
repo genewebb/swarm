@@ -315,7 +315,7 @@ All events include:
 | Property | Value |
 | --- | --- |
 | `@t` | UTC timestamp from `run.status.json` |
-| `@mt` | Message template (e.g. `"Swarm run {RunId} step {CurrentStep} completed, next {NextAgent}"`) |
+| `@mt` | Message template. Examples: `"[Swarm] Run started: {PipelinePhase}"`, `"[Swarm] Step {Step}: {PipelinePhase} completed, next {NextAgent}"`, `"[Swarm] Run failed: {PipelinePhase}"` |
 | `@l` | `Information` / `Warning` / `Error` |
 | `@sc` | `"Swarm"` (instrumentation scope) |
 | `RunId` | Run GUID |
@@ -331,7 +331,7 @@ Step-completed events additionally include:
 | `PhaseKey` | e.g. `implementor.subplan-2` |
 | `SubPlanIndex` | Present when decomposition is active |
 | `SubPlanTotal` | Present when decomposition is active |
-| `ContextSummary` | Full `handoff.input` text (safety cap 2000 chars) |
+| `ContextPack` | Full `context.pack.md` content sent to the agent |
 | `FilesChanged` | Array from result file, capped at 20 items |
 
 ### Seq UI Filters
