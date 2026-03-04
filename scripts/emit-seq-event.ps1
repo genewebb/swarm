@@ -71,7 +71,7 @@ $seqConfigPath = Join-Path $WorkspaceRoot ".swarm/config/seq.json"
 if (-not (Test-Path $seqConfigPath)) { exit 0 }
 
 $seqConfig = Read-JsonFile $seqConfigPath
-if (-not $seqConfig) { Write-Host "[Seq] Could not parse seq.json"; exit 0 }
+if (-not $seqConfig) { Write-Host "[Swarm] Could not parse seq.json"; exit 0 }
 if ($seqConfig.enabled -ne $true) { exit 0 }
 if ([string]::IsNullOrWhiteSpace($seqConfig.serverUrl)) { exit 0 }
 
@@ -79,12 +79,12 @@ if ([string]::IsNullOrWhiteSpace($seqConfig.serverUrl)) { exit 0 }
 $runDir    = Join-Path $WorkspaceRoot ".swarm/runs/$RunId"
 $statusPath = Join-Path $runDir "run.status.json"
 if (-not (Test-Path $statusPath)) {
-    Write-Host "[Seq] run.status.json not found: $statusPath"
+    Write-Host "[Swarm] run.status.json not found: $statusPath"
     exit 0
 }
 
 $status = Read-JsonFile $statusPath
-if (-not $status) { Write-Host "[Seq] Could not parse run.status.json"; exit 0 }
+if (-not $status) { Write-Host "[Swarm] Could not parse run.status.json"; exit 0 }
 
 # --- Resolve RunId (handle both 'runId' and 'run-id' field names) ---
 $resolvedRunId = $RunId
@@ -246,10 +246,12 @@ switch ($EventType) {
 # Uses HttpClient directly for deterministic 15-second timeout.
 # Invoke-RestMethod -TimeoutSec is unreliable in PS 5.x for stalled connections.
 #
+# PS 5.x: System.Net.Http is not auto-loaded — must load explicitly.
 # PS 5.x bug: ConvertTo-Json on any container (OrderedDictionary or PSObject) that holds
 # PSCustomObject values serializes the full .NET reflection tree, inflating payloads to MBs.
 # Fix: serialize each value independently (PSCustomObject piped directly = correct compact JSON)
 # then assemble the CLEF event JSON by hand.
+Add-Type -AssemblyName System.Net.Http -ErrorAction SilentlyContinue
 try {
     $pairs = foreach ($key in $clefEvent.Keys) {
         $val = $clefEvent[$key]
@@ -278,10 +280,10 @@ try {
 
     if (-not $response.IsSuccessStatusCode) {
         $detail = $response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
-        Write-Host "[Seq] emit failed ($EventType): HTTP $([int]$response.StatusCode) - $detail"
+        Write-Host "[Swarm] emit failed ($EventType): HTTP $([int]$response.StatusCode) - $detail"
     }
 } catch {
-    Write-Host "[Seq] emit failed ($EventType): $_"
+    Write-Host "[Swarm] emit failed ($EventType): $_"
 }
 
 exit 0

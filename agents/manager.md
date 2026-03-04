@@ -164,15 +164,14 @@ Do not reuse generic keys like `constraint-reviewer.started` across multiple gro
 
 ### Seq Observability
 
-Read `.swarm/config/seq.json`. If the file is missing or `enabled` is `false`, skip all emit calls below. When present and enabled, call `emit-seq-event.ps1` at each trigger point listed below. This is best-effort: if the script returns a non-zero exit code or errors, write one line (`[Seq] emit failed: {error}`) and continue — never block the run.
+Seq events are emitted by the dedicated `logger` subagent, invoked at three mandatory points in the workflow (see ⛔ MANDATORY LOG markers in the Workflow section below). The `logger` subagent calls `emit-seq-event.ps1` and reports one `📡 [Seq]` line to the user.
 
-| Trigger point | Command |
-| --- | --- |
-| After creating the initial `run.status.json` | `powershell -File scripts/emit-seq-event.ps1 -RunId {runId} -EventType run-started` |
-| After `handoff.json` is written for each step | `powershell -File scripts/emit-seq-event.ps1 -RunId {runId} -EventType step-completed` |
-| When setting `outcome: failed` in `run.status.json` | `powershell -File scripts/emit-seq-event.ps1 -RunId {runId} -EventType run-failed` |
+The script handles the `.swarm/config/seq.json` check internally and exits 0 silently when Seq is disabled — no pre-check required. Never block a run over a logging failure.
 
-The script reads `run.status.json`, `handoff.json`, and the current step's result file to construct the CLEF event. No JSON construction is required from the Manager. All events are tagged `@sc = "Swarm"`. Filter in Seq UI with `@sc = 'Swarm'`.
+Trigger points:
+- **run-started** — after initial `run.status.json` write (Workflow step 2)
+- **step-completed** — after each `handoff.json` write (Workflow step 14)
+- **run-failed** — whenever setting `outcome: failed` for any reason: invoke `logger` with `RunId={runId}. EventType=run-failed. WorkspaceRoot={absolute workspace root path}.` before stopping.
 
 ### Context pack assembly
 
@@ -399,7 +398,7 @@ Each handoff file (`handoff.json` or an archived file such as `handoff.step-0003
 The workflow is **fully defined by config**. Add, remove, or reorder subagents in `config.json` to create different experiences. Do not hardcode agent names.
 
 1. **Enforce clean working tree**: Read `.swarm/policies.json`, then run `git status`. If policy requires a clean tree, stop on modified/staged files. Stop on untracked files only when `git.allowUntrackedFiles` is `false`.
-2. Ensure `.swarm/` and `.swarm/runs/` exist; create if missing. For first-step execution: generate `run-id` (GUID), create `.swarm/runs/{run-id}/`, create `run.status.json` there (outcome: `in-progress`).
+2. Ensure `.swarm/` and `.swarm/runs/` exist; create if missing. For first-step execution: generate `run-id` (GUID), create `.swarm/runs/{run-id}/`, create `run.status.json` there (outcome: `in-progress`). ⛔ **MANDATORY LOG**: Immediately after writing the initial `run.status.json`, invoke the `logger` subagent: `RunId={run-id}. EventType=run-started. WorkspaceRoot={absolute workspace root path}.` Do not proceed to step 3 until logger completes.
 3. Read `config.json`. Find the agent with `first-step: true` → that is the **current agent**.
 4. Parse the user's task.
 5. **Persist and invoke current agent** – Before spawning the current agent, write `run.status.json` with `current-step` set to that agent, `updated-at` set to the actual current UTC time, and `step-timestamps["{phaseKey}.started"]` recorded using the unique phase-key rules above. Then spawn the subagent directly. Look up the agent in config (`invoke`, `inputType`) and build the prompt to match that agent's expected input format (see "Invoking subagents"):
@@ -413,7 +412,7 @@ The workflow is **fully defined by config**. Add, remove, or reorder subagents i
 11. **Loop check**: If handing from `loop-control.fromAgent` to `loop-control.toAgent`, check `run.status.json`[`countField`] vs `maxLoops`. If exceeded, escalate and stop.
 12. **Worktree per run** (if enabled by `behavior.branching.enabled`): If `behavior.branching.useCurrentBranch` is true, set `context.worktreePath` to the workspace root and omit branch creation/push/PR. Otherwise **you MUST execute** `git worktree add <path> -b swarm/<friendly-name>`. Compute `<path>` from `behavior.branching.worktreePathTemplate` if present (replace `{friendly-name}` with plan's friendly-name; resolve relative to workspace root). If no template, use sibling directory (e.g. `../<workspace-dirname>-swarm-<friendly-name>`). Ensure parent dir exists. Record `branch` and `worktreePath` (absolute path) in `run.status.json` and in every handoff `context.worktreePath`. All subsequent subagents operate in this directory.
 13. **Parallel eligibility check**: If `parallelization.enabled` is true and applicable `parallelization.rules` allow safe batching, run eligible task batches in parallel per rule limits. If `parallelization.rules` is missing/empty or no rule applies, run serially.
-14. **Create handoff** for the next agent per `handoff.schema.json`. Include `context.allowedFiles` (from plan or previous result), `context.branch`, and `context.worktreePath` when branching is enabled. When `behavior.branching.deferCommitToUser` is true, include `context.deferCommitToUser: true` so the implementor skips committing. Generate a fresh `handoffId`, increment the handoff `step`, write the immutable archived file `handoff.step-{step}.{next-agent}.json`, and then update `handoff.json`.
+14. **Create handoff** for the next agent per `handoff.schema.json`. Include `context.allowedFiles` (from plan or previous result), `context.branch`, and `context.worktreePath` when branching is enabled. When `behavior.branching.deferCommitToUser` is true, include `context.deferCommitToUser: true` so the implementor skips committing. Generate a fresh `handoffId`, increment the handoff `step`, write the immutable archived file `handoff.step-{step}.{next-agent}.json`, and then update `handoff.json`. ⛔ **MANDATORY LOG**: Immediately after writing `handoff.json`, invoke the `logger` subagent: `RunId={runId}. EventType=step-completed. WorkspaceRoot={absolute workspace root path}.` Do not proceed to step 15 until logger completes.
 15. **Invoke next agent** – Before spawning, persist `run.status.json` with the next agent's `phaseKey.started` timestamp and `current-step` set to that next agent, using a unique phase key for repeated passes. Then spawn the subagent directly with the handoff path in the prompt. Set current agent to the next. Go to step 5.
 16. **Stop** when `handoff-to[current-agent]` is empty, or on escalation/failure. When the run completes successfully (the final configured agent, normally verifier, completes): If `useCurrentBranch` is true, stop—no push or PR. Otherwise **you MUST execute** (1) commit any uncommitted changes in the worktree, (2) `git -C <worktreePath> push -u origin swarm/<friendly-name>`, (3) infer PR tool from origin URL and attempt PR creation, (4) `git worktree remove <worktreePath>` after successful push.
     - If step (3) succeeds, record `prUrl`.
