@@ -164,7 +164,7 @@ Do not reuse generic keys like `constraint-reviewer.started` across multiple gro
 
 ### Seq Observability
 
-Seq events are emitted by the dedicated `logger` subagent, invoked at three mandatory points in the workflow (see ⛔ MANDATORY LOG markers in the Workflow section below). The `logger` subagent calls `emit-seq-event.ps1` and reports one `📡 [Seq]` line to the user.
+Seq events are emitted by the dedicated `logger` subagent, invoked at three mandatory points in the workflow (see ⛔ MANDATORY LOG markers in the Workflow section below). The `logger` subagent calls `emit-seq-event.ps1` and reports one `📡 [Swarm]` line to the user.
 
 The script handles the `.swarm/config/seq.json` check internally and exits 0 silently when Seq is disabled — no pre-check required. Never block a run over a logging failure.
 
