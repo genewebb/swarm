@@ -141,7 +141,7 @@ switch ($EventType) {
     "run-started" {
         $ts = if ($status.PSObject.Properties['created-at']) { $status.'created-at' } else { $status.'updated-at' }
         $clefEvent["@t"]        = $ts
-        $clefEvent["@mt"]       = "Run started"
+        $clefEvent["@mt"]       = "Run started: {PipelinePhase}"
         $clefEvent["@l"]        = "Information"
         # Store as PSCustomObject (not raw string) so ConvertTo-Json -Depth 5 serializes
         # it cleanly without the {"value":"..."} wrapper that raw strings produce
@@ -150,7 +150,7 @@ switch ($EventType) {
 
     "run-failed" {
         $clefEvent["@t"]        = $status.'updated-at'
-        $clefEvent["@mt"]       = "Run failed at {CurrentStep}"
+        $clefEvent["@mt"]       = "Run failed: {PipelinePhase}"
         $clefEvent["@l"]        = "Error"
         $clefEvent["RunStatus"] = $status
     }
@@ -200,7 +200,7 @@ switch ($EventType) {
         $subPlanIndex = if ($status.PSObject.Properties['subPlanIndex']) { $status.subPlanIndex } else { $null }
         $phaseKey     = if ($subPlanIndex) { "$currentStep.subplan-$subPlanIndex" } else { $currentStep }
 
-        $clefEvent["@mt"]       = "Step {CurrentStep} completed, next {NextAgent}"
+        $clefEvent["@mt"]       = "Step {Step}: {PipelinePhase} completed, next {NextAgent}"
         $clefEvent["NextAgent"] = $nextAgent
         $clefEvent["Step"]      = $stepNum
         $clefEvent["PhaseKey"]  = $phaseKey
