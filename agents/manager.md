@@ -162,6 +162,18 @@ Use the returned value for every `updated-at`, `created-at`, and `step-timestamp
 
 Do not reuse generic keys like `constraint-reviewer.started` across multiple groups in the same run.
 
+### Seq Observability
+
+Read `.swarm/config/seq.json`. If the file is missing or `enabled` is `false`, skip all emit calls below. When present and enabled, call `emit-seq-event.ps1` at each trigger point listed below. This is best-effort: if the script returns a non-zero exit code or errors, write one line (`[Seq] emit failed: {error}`) and continue — never block the run.
+
+| Trigger point | Command |
+| --- | --- |
+| After creating the initial `run.status.json` | `emit-seq-event.ps1 -RunId {runId} -EventType run-started` |
+| After `handoff.json` is written for each step | `emit-seq-event.ps1 -RunId {runId} -EventType step-completed` |
+| When setting `outcome: failed` in `run.status.json` | `emit-seq-event.ps1 -RunId {runId} -EventType run-failed` |
+
+The script reads `run.status.json`, `handoff.json`, and the current step's result file to construct the CLEF event. No JSON construction is required from the Manager. All events are tagged `@sc = "Swarm"`. Filter in Seq UI with `@sc = 'Swarm'`.
+
 ### Context pack assembly
 
 Before creating a handoff for any agent that reads `artifacts.contextPackPath`, assemble `context.pack.md` and write it to `.swarm/runs/{runId}/context.pack.md`. Build the file from the canonical registry and the task's `activeGroupIds`:

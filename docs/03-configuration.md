@@ -274,6 +274,84 @@ Each file is named for the tool (`cursor.json`, `vscode.json`, `claude-code.json
 
 ---
 
+## Seq Observability (Optional)
+
+Swarm can emit structured events to [Seq](https://datalust.co/seq) for run visibility — no code changes required. Events are posted directly from the Manager using Seq's native CLEF ingestion API.
+
+### Enable
+
+Copy `swarm-template/config/seq.json` to `.swarm/config/seq.json` and configure:
+
+```json
+{
+  "serverUrl": "http://localhost:5341",
+  "apiKey": "",
+  "enabled": true
+}
+```
+
+| Field | Description |
+| --- | --- |
+| `serverUrl` | Seq base URL. Required when `enabled: true`. |
+| `apiKey` | Optional. Passed as `X-Seq-ApiKey` header if non-empty. |
+| `enabled` | When `false` or absent, no events are emitted. Default `false` in template. |
+
+When the file is absent or `enabled: false`, Swarm runs exactly as it does today with no reporting.
+
+### Events Emitted
+
+The Manager calls `scripts/emit-seq-event.ps1` at three trigger points:
+
+| Event type | When | `@l` level |
+| --- | --- | --- |
+| `run-started` | After the initial `run.status.json` is created | `Information` |
+| `step-completed` | After each `handoff.json` is written | `Information` (or `Warning` for escalation outcomes) |
+| `run-failed` | When `outcome: failed` is set | `Error` |
+
+### CLEF Properties
+
+All events include:
+
+| Property | Value |
+| --- | --- |
+| `@t` | UTC timestamp from `run.status.json` |
+| `@mt` | Message template (e.g. `"Swarm run {RunId} step {CurrentStep} completed, next {NextAgent}"`) |
+| `@l` | `Information` / `Warning` / `Error` |
+| `@sc` | `"Swarm"` (instrumentation scope) |
+| `RunId` | Run GUID |
+| `CurrentStep` | Agent name (e.g. `implementor`) |
+| `Outcome` | `in-progress` / `completed` / `failed` / escalation |
+
+Step-completed events additionally include:
+
+| Property | Value |
+| --- | --- |
+| `NextAgent` | Target agent from `handoff.json` |
+| `Step` | Handoff step number |
+| `PhaseKey` | e.g. `implementor.subplan-2` |
+| `SubPlanIndex` | Present when decomposition is active |
+| `SubPlanTotal` | Present when decomposition is active |
+| `ContextSummary` | Full `handoff.input` text (safety cap 2000 chars) |
+| `FilesChanged` | Array from result file, capped at 20 items |
+
+### Seq UI Filters
+
+| Filter | Purpose |
+| --- | --- |
+| `@sc = 'Swarm'` | All Swarm events |
+| `RunId = 'your-run-id'` | Single run |
+| `CurrentStep = 'implementor'` | Step-specific events |
+| `@l = 'Error'` | Failed runs |
+| `@l = 'Warning'` | Escalated runs |
+
+> **Note**: Use `@sc = 'Swarm'` not `SourceContext = 'Swarm'`. `@sc` is the CLEF instrumentation scope property; `SourceContext` is a Serilog library convention and will not match.
+
+### Validation
+
+`validate-swarm-config.ps1` validates `seq.json` when present: checks JSON syntax, and requires `serverUrl` to be non-empty and start with `http://` or `https://` when `enabled: true`.
+
+---
+
 ## Running the Config Validator
 
 After any changes to `construct-registry.json` or `rule-groups.json`:

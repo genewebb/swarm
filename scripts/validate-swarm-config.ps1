@@ -219,7 +219,28 @@ if (Test-Path $decomposerPath) {
         }
     }
 } elseif ($WarnOnly) {
-    Write-Warning "plan-decomposer.json not found — expected before Step 11 (plan decomposer not yet implemented)"
+    Write-Warning "plan-decomposer.json not found - expected before Step 11 (plan decomposer not yet implemented)"
+}
+
+# --- seq.json (optional - only validate if present) ---
+$seqPath = Join-Path $RepoRoot ".swarm/config/seq.json"
+if (Test-Path $seqPath) {
+    try {
+        $seq = Get-Content $seqPath -Raw | ConvertFrom-Json
+    } catch {
+        Fail "seq.json: invalid JSON - $_"
+        $seq = $null
+    }
+    if ($seq) {
+        if ($seq.enabled -eq $true -and [string]::IsNullOrWhiteSpace($seq.serverUrl)) {
+            Fail "seq.json: 'enabled' is true but 'serverUrl' is empty"
+        }
+        if ($seq.PSObject.Properties['serverUrl'] -and
+            -not [string]::IsNullOrWhiteSpace($seq.serverUrl) -and
+            $seq.serverUrl -notmatch '^https?://') {
+            Fail "seq.json: 'serverUrl' must start with http:// or https://"
+        }
+    }
 }
 
 # --- generated files staleness (WarnOnly during migration) ---
@@ -246,7 +267,7 @@ if (-not $WarnOnly) {
 } else {
     $claudePath = Join-Path $RepoRoot "CLAUDE.md"
     if (-not (Test-Path $claudePath)) {
-        Write-Warning "CLAUDE.md not found — expected during migration; create in Step 9"
+        Write-Warning "CLAUDE.md not found - expected during migration; create in Step 9"
     }
 }
 

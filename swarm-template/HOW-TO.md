@@ -104,7 +104,24 @@ The output JSON contains `projects`, `dependencyGraph`, and `coreProjectNames`. 
 
 If `SolutionParser.exe` is missing from `PATH`, `/swarm` cannot decompose large plans and should be treated as misconfigured.
 
-### Step 6: No extra configuration needed
+### Step 6: Make Swarm scripts available
+
+Swarm ships helper scripts that the Manager calls during runs. `emit-seq-event.ps1` must be resolvable when the Manager calls it. Either option works:
+
+**Option A — Add the Swarm `scripts/` folder to your system PATH** (recommended if using Swarm across multiple projects):
+
+Add `c:\path\to\swarm\scripts` to your `PATH`. The script will resolve from PATH in any project.
+
+**Option B — Copy into your project's `scripts/` folder**:
+
+```powershell
+# From your project root
+Copy-Item "c:\path\to\swarm\scripts\emit-seq-event.ps1" ".\scripts\emit-seq-event.ps1" -Force
+```
+
+If the script is not resolvable by either method, the Manager will log `[Seq] emit failed:` and continue — Seq observability is best-effort and never blocks a run.
+
+### Step 7: No extra configuration needed
 
 Rules, groups, and workflow are defined in config. The Manager reads `.cursor/agents/manager/config.json` for the agent graph and handoff flow. No environment variables or API keys are required for basic Swarm operation.
 
