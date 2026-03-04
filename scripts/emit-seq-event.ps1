@@ -158,15 +158,30 @@ switch ($EventType) {
     "step-completed" {
         $clefEvent["@t"] = $status.'updated-at'
 
-        # --- handoff.json (input to the next agent) ---
+        # --- handoff.json (incoming handoff that triggered this step) ---
         $handoff   = Read-JsonFile (Join-Path $runDir "handoff.json")
         $nextAgent = $null
         $stepNum   = $null
 
         if ($handoff) {
-            $nextAgent = $handoff.to
             $stepNum   = $handoff.step
             $clefEvent["HandoffInput"] = $handoff
+
+            # Derive NextAgent from the outgoing archived handoff (handoff.step-{N+1}.{agent}.json).
+            # The MANDATORY LOG fires after the archived outgoing file is written but before
+            # handoff.json is updated — so handoff.json.to still points to the completing agent.
+            # Reading the archived file by step+1 gives the correct next agent.
+            $outgoingPattern = "handoff.step-{0:D4}.*.json" -f ($handoff.step + 1)
+            $outgoingFile    = Get-ChildItem $runDir -Filter $outgoingPattern 2>$null | Select-Object -First 1
+            if ($outgoingFile) {
+                # Filename: handoff.step-0007.verifier.json  →  parts[2] = "verifier"
+                $parts     = $outgoingFile.BaseName -split '\.'
+                $nextAgent = if ($parts.Count -ge 3) { $parts[2] } else { $handoff.to }
+            } else {
+                # Outgoing archived file not yet written, or this is the last step.
+                # Fall back to handoff.to — best available data.
+                $nextAgent = $handoff.to
+            }
         }
 
         # --- {agent}.result.json (output of this step) ---
