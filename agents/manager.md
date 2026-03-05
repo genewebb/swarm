@@ -164,9 +164,9 @@ Do not reuse generic keys like `constraint-reviewer.started` across multiple gro
 
 ### Seq Observability
 
-Seq events are emitted by the dedicated `logger` subagent. The `logger` subagent calls `emit-seq-event.ps1` and reports one `📡 [Swarm]` line to the user. The script handles the `.swarm/config/seq.json` check internally and exits 0 silently when Seq is disabled — no pre-check required. Never block a run over a logging failure.
+Seq events are emitted by running `emit-seq-event.ps1` directly in the terminal. The script handles the `.swarm/config/seq.json` check internally and exits 0 silently when Seq is disabled — no pre-check required. Never block a run over a logging failure.
 
-All logger invocations are controlled exclusively by the ⛔ MANDATORY LOG markers in the Workflow section below. Do not invoke the logger at any other point.
+All emission points are the ⛔ MANDATORY LOG markers in the Workflow section below. Do not run the script at any other point.
 
 ### Context pack assembly
 
@@ -397,7 +397,7 @@ Each handoff file (`handoff.json` or an archived file such as `handoff.step-0003
 The workflow is **fully defined by config**. Add, remove, or reorder subagents in `config.json` to create different experiences. Do not hardcode agent names.
 
 1. **Enforce clean working tree**: Read `.swarm/policies.json`, then run `git status`. If policy requires a clean tree, stop on modified/staged files. Stop on untracked files only when `git.allowUntrackedFiles` is `false`.
-2. Ensure `.swarm/` and `.swarm/runs/` exist; create if missing. For first-step execution: generate `run-id` (GUID), create `.swarm/runs/{run-id}/`, create `run.status.json` there (outcome: `in-progress`). ⛔ **MANDATORY LOG**: Immediately after writing the initial `run.status.json`, invoke the `logger` subagent: `RunId={run-id}. EventType=run-started. WorkspaceRoot={absolute workspace root path}.` Do not proceed to step 3 until logger completes.
+2. Ensure `.swarm/` and `.swarm/runs/` exist; create if missing. For first-step execution: generate `run-id` (GUID), create `.swarm/runs/{run-id}/`, create `run.status.json` there (outcome: `in-progress`). ⛔ **MANDATORY LOG**: Immediately after writing the initial `run.status.json`, run this command in the terminal: `emit-seq-event.ps1 -RunId "{run-id}" -EventType run-started -WorkspaceRoot "{absolute workspace root path}"`. Do not proceed to step 3 until the command completes.
 3. Read `config.json`. Find the agent with `first-step: true` → that is the **current agent**.
 4. Parse the user's task.
 5. **Persist and invoke current agent** – Before spawning the current agent, write `run.status.json` with `current-step` set to that agent, `updated-at` set to the actual current UTC time, and `step-timestamps["{phaseKey}.started"]` recorded using the unique phase-key rules above. Then spawn the subagent directly. Look up the agent in config (`invoke`, `inputType`) and build the prompt to match that agent's expected input format (see "Invoking subagents"):
@@ -416,13 +416,13 @@ The workflow is **fully defined by config**. Add, remove, or reorder subagents i
     - **Sub-plan review checkpoint**: If entering the sub-plan loop for the first time (i.e. the next agent is `implementor` and `subPlanCount > 1`), apply the full checkpoint described in the "Decomposition review checkpoints" section above. This checkpoint may stop the workflow awaiting user input. Do not write the implementor handoff until the user has responded.
     - Any other pre-handoff check defined in a dedicated section of this document applies here.
 
-    **Create handoff** for the next agent per `handoff.schema.json`. Include `context.allowedFiles` (from plan or previous result), `context.branch`, and `context.worktreePath` when branching is enabled. When `behavior.branching.deferCommitToUser` is true, include `context.deferCommitToUser: true` so the implementor skips committing. Generate a fresh `handoffId`, increment the handoff `step`, write the immutable archived file `handoff.step-{step}.{next-agent}.json`, and then update `handoff.json`. ⛔ **MANDATORY LOG**: Immediately after writing `handoff.json`, invoke the `logger` subagent: `RunId={runId}. EventType=step-completed. WorkspaceRoot={absolute workspace root path}.` Do not proceed to step 15 until logger completes.
+    **Create handoff** for the next agent per `handoff.schema.json`. Include `context.allowedFiles` (from plan or previous result), `context.branch`, and `context.worktreePath` when branching is enabled. When `behavior.branching.deferCommitToUser` is true, include `context.deferCommitToUser: true` so the implementor skips committing. Generate a fresh `handoffId`, increment the handoff `step`, write the immutable archived file `handoff.step-{step}.{next-agent}.json`, and then update `handoff.json`. ⛔ **MANDATORY LOG**: Immediately after writing `handoff.json`, run this command in the terminal: `emit-seq-event.ps1 -RunId "{runId}" -EventType step-completed -WorkspaceRoot "{absolute workspace root path}"`. Do not proceed to step 15 until the command completes.
 15. **Invoke next agent** – Before spawning, persist `run.status.json` with the next agent's `phaseKey.started` timestamp and `current-step` set to that next agent, using a unique phase key for repeated passes. Then spawn the subagent directly with the handoff path in the prompt. Set current agent to the next. Go to step 5.
 16. **Stop** when `handoff-to[current-agent]` is empty, or on escalation/failure. When the run completes successfully (the final configured agent, normally verifier, completes): If `useCurrentBranch` is true, stop—no push or PR. Otherwise **you MUST execute** (1) commit any uncommitted changes in the worktree, (2) `git -C <worktreePath> push -u origin swarm/<friendly-name>`, (3) infer PR tool from origin URL and attempt PR creation, (4) `git worktree remove <worktreePath>` after successful push.
     - If step (3) succeeds, record `prUrl`.
     - If step (3) fails (including missing tool or ambiguous remote host), do **not** fail the run. Record warning `pr-create-failed`, `pr-tool-missing`, or `pr-tool-undetermined` plus manual PR instructions and keep `outcome` as `completed`.
     - If step (2) fails, do not remove worktree; set `outcome` to `failed` and include remediation.
-    - Whenever setting `outcome: failed` for any reason (escalation, schema failure, loop limit exceeded, or any other stop condition): ⛔ **MANDATORY LOG**: invoke the `logger` subagent: `RunId={runId}. EventType=run-failed. WorkspaceRoot={absolute workspace root path}.` Do this immediately before stopping.
+    - Whenever setting `outcome: failed` for any reason (escalation, schema failure, loop limit exceeded, or any other stop condition): ⛔ **MANDATORY LOG**: run this command in the terminal immediately before stopping: `emit-seq-event.ps1 -RunId "{runId}" -EventType run-failed -WorkspaceRoot "{absolute workspace root path}"`.
     Update `run.status.json` with final `outcome`.
 
 ## Paths
