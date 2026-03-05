@@ -236,10 +236,11 @@ Record replan count in `run.status.json` under the configured replan count field
 
 Before creating the handoff for **plan-decomposer**, check whether the user should be prompted about decomposition.
 
-1. **Read** `.swarm/config/plan-decomposer.json`. If `confirmDecompositionWithUser` is `false` or absent, skip this gate and proceed normally.
-2. **Check whether decomposition would trigger**: From the validated `plan.json`, count distinct projects touched across all tasks and the total task count. Compare against `triggerThreshold.minProjects` and `triggerThreshold.minSteps`.
-3. **If both counts are below their minimums** (decomposition would not trigger): skip the prompt. Proceed to plan-decomposer normally.
-4. **If decomposition would trigger** (either threshold is met):
+1. **Check if already answered**: Read `run.status.json`. If `decompositionConfirmation` is already set (any value), skip this gate entirely and apply that recorded choice directly — do NOT prompt again.
+2. **Read** `.swarm/config/plan-decomposer.json`. If `confirmDecompositionWithUser` is `false` or absent, skip this gate and proceed normally.
+3. **Check whether decomposition would trigger**: From the validated `plan.json`, count distinct projects touched across all tasks and the total task count. Compare against `triggerThreshold.minProjects` and `triggerThreshold.minSteps`.
+4. **If both counts are below their minimums** (decomposition would not trigger): skip the prompt. Proceed to plan-decomposer normally.
+5. **If decomposition would trigger** (either threshold is met):
    - Count lanes in `plan.json`.
    - ⛔ **STOP. Output the EXACT message below to the user — fill in the placeholders but do not shorten, summarize, or omit any part of it. Do not create any handoff. Do not invoke plan-decomposer. Wait for an explicit user response before taking any further action.**
 
@@ -254,8 +255,8 @@ Before creating the handoff for **plan-decomposer**, check whether the user shou
      >
      > Reply with 1, 2, or 3.
 
-   - **Parse the user's response by its leading digit only** — ignore any additional words (e.g. "1 yes", "1 continue", "2 ok" all count as the digit). If the response starts with `1`, it is Choice [1]. If it starts with `2`, it is Choice [2]. If it starts with `3`, it is Choice [3] followed by the cap number.
-   - Record the user's choice in `run.status.json` under `decompositionConfirmation`.
+   - **Parse the user's response by its leading digit only** — ignore any additional words ("1 yes", "1 continue", "2 ok" all resolve to the leading digit). `1` → Choice [1]. `2` → Choice [2]. `3` → Choice [3] with the following number as the cap.
+   - Write the numeric choice to `run.status.json` as `decompositionConfirmation: 1`, `2`, or `3` (write the number, not a description).
    - **Choice [1]**: proceed normally — no override fields needed in the handoff.
    - **Choice [2]**: add `context.overridePassthrough: true` to the plan-decomposer handoff. The decomposer emits 1 passthrough sub-plan regardless of threshold.
    - **Choice [3]**: add `context.maxSubPlansOverride: N` to the plan-decomposer handoff (where N is the user's number). The decomposer uses N as the effective `maxSubPlans` cap for this run, overriding the config value.
@@ -264,19 +265,21 @@ Before creating the handoff for **plan-decomposer**, check whether the user shou
 
 When `subPlanCount > 1`, **before running any sub-plan**:
 
-⛔ **STOP. Output the EXACT message below to the user — fill in the placeholders but do not shorten, summarize, or omit any part of it. Do not build any implementor handoff. Do not invoke any agent. Wait for an explicit Yes or No response before taking any further action.**
+1. **Check if already answered**: Read `run.status.json`. If `reviewBetweenSubPlans` is already set (any value), skip this prompt entirely and apply the recorded answer — do NOT prompt again.
+2. ⛔ **STOP. Output the EXACT message below to the user — fill in the placeholders but do not shorten, summarize, or omit any part of it. Do not build any implementor handoff. Do not invoke any agent. Wait for an explicit response before taking any further action.**
 
 > ⚙️ **Swarm — Sub-plan review**
 > Plan decomposed into **{subPlanCount} sub-plans**: {scopeLabel1}, {scopeLabel2}, …
 >
-> **[Yes]** Pause after each sub-plan completes so you can review before continuing
-> **[No]** Run all sub-plans straight through without stopping
+> **[1]** Pause after each sub-plan completes so you can review before continuing
+> **[2]** Run all sub-plans straight through without stopping
 >
-> Pause between sub-plans? Reply Yes or No.
+> Reply with 1 or 2.
 
-- Record the answer in `run.status.json` as `reviewBetweenSubPlans: true/false`.
-- **Yes** → pause after each successful sub-plan (except the last) per the ⛔ MANDATORY PAUSE rule in the sub-plan loop.
-- **No** → run all sub-plans straight through without pausing.
+- **Parse the user's response by its leading digit only** — "1 yes", "1 pause" all resolve to `1`; "2 no", "2 continue" all resolve to `2`.
+- Write the numeric choice to `run.status.json` as `reviewBetweenSubPlans: 1` or `2` (write the number, not a description).
+- **Choice [1]** → pause after each successful sub-plan (except the last) per the ⛔ MANDATORY PAUSE rule in the sub-plan loop.
+- **Choice [2]** → run all sub-plans straight through without pausing.
 - This runtime answer overrides the `reviewCheckpoints.promptBetweenSubPlans` config value for this run.
 
 ### Repeated same-agent passes
@@ -333,7 +336,7 @@ When the current agent is **plan-decomposer** and its result has `decomposed: tr
    - Invoke implementor → reviewer → tester → verifier (normal pipeline).
    - For every stage in sub-plan `i`, use subplan-qualified timestamps in `run.status.json` (for example `implementor.subplan-1.started`, `implementor.subplan-1.completed`, `reviewer.subplan-1.started`, etc.).
    - On **success**: Append `{ index: i, scopeLabel, summary }` to `priorSubPlanSummaries` (from implementor/reviewer result). Persist the updated array to `run.status.json`.
-   - **⛔ MANDATORY PAUSE — check this before every sub-plan transition**: If `reviewBetweenSubPlans` is `true` (from `run.status.json`) **and** `i < subPlanCount`:
+   - **⛔ MANDATORY PAUSE — check this before every sub-plan transition**: If `reviewBetweenSubPlans` is `1` (from `run.status.json`) **and** `i < subPlanCount`:
      1. **STOP IMMEDIATELY. Do not build the next handoff. Do not invoke the next agent.**
      2. Write `run.status.json`: `outcome: "paused-for-review"`, `subPlanIndex: i`, `resumeSubPlanIndex: i + 1`, `updated-at: <actual current UTC>`.
      3. Output to the user: `"Sub-plan {i} of {subPlanCount} completed. Do you want to continue to sub-plan {i+1}?"`
