@@ -123,6 +123,22 @@ $subIdx       = if ($status.PSObject.Properties['subPlanIndex']) { $status.subPl
 $subTotal     = if ($status.PSObject.Properties['subPlanTotal']) { $status.subPlanTotal } else { $null }
 $pipelinePhase = if ($subIdx -and $subTotal) { "$baseLabel ($subIdx of $subTotal)" } else { $baseLabel }
 
+# --- Idempotency check ---
+# Prevents double-emission if the script is called more than once for the same event.
+$sendKeyName = switch ($EventType) {
+    "run-started"    { "run-started" }
+    "run-failed"     { "run-failed" }
+    "step-completed" {
+        $idx = if ($subIdx) { ".subplan-$subIdx" } else { "" }
+        "step-completed.$currentStep$idx"
+    }
+}
+$markerPath = Join-Path $runDir ".seq.$sendKeyName.sent"
+if (Test-Path $markerPath) {
+    Write-Host "[Swarm] already emitted ($EventType), skipping duplicate"
+    exit 0
+}
+
 # --- Build CLEF event ---
 # RunId and PipelinePhase are property tags only — kept out of @mt so messages stay clean
 $clefEvent = [ordered]@{
@@ -296,6 +312,9 @@ try {
     if (-not $response.IsSuccessStatusCode) {
         $detail = $response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
         Write-Host "[Swarm] emit failed ($EventType): HTTP $([int]$response.StatusCode) - $detail"
+    } else {
+        # Mark as sent to prevent duplicate emission
+        "" | Out-File $markerPath -Encoding ascii -ErrorAction SilentlyContinue
     }
 } catch {
     Write-Host "[Swarm] emit failed ($EventType): $_"
