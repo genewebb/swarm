@@ -164,14 +164,9 @@ Do not reuse generic keys like `constraint-reviewer.started` across multiple gro
 
 ### Seq Observability
 
-Seq events are emitted by the dedicated `logger` subagent, invoked at three mandatory points in the workflow (see ⛔ MANDATORY LOG markers in the Workflow section below). The `logger` subagent calls `emit-seq-event.ps1` and reports one `📡 [Swarm]` line to the user.
+Seq events are emitted by the dedicated `logger` subagent. The `logger` subagent calls `emit-seq-event.ps1` and reports one `📡 [Swarm]` line to the user. The script handles the `.swarm/config/seq.json` check internally and exits 0 silently when Seq is disabled — no pre-check required. Never block a run over a logging failure.
 
-The script handles the `.swarm/config/seq.json` check internally and exits 0 silently when Seq is disabled — no pre-check required. Never block a run over a logging failure.
-
-Trigger points:
-- **run-started** — after initial `run.status.json` write (Workflow step 2)
-- **step-completed** — after each `handoff.json` write (Workflow step 14)
-- **run-failed** — whenever setting `outcome: failed` for any reason: invoke `logger` with `RunId={runId}. EventType=run-failed. WorkspaceRoot={absolute workspace root path}.` before stopping.
+All logger invocations are controlled exclusively by the ⛔ MANDATORY LOG markers in the Workflow section below. Do not invoke the logger at any other point.
 
 ### Context pack assembly
 
@@ -423,6 +418,7 @@ The workflow is **fully defined by config**. Add, remove, or reorder subagents i
     - If step (3) succeeds, record `prUrl`.
     - If step (3) fails (including missing tool or ambiguous remote host), do **not** fail the run. Record warning `pr-create-failed`, `pr-tool-missing`, or `pr-tool-undetermined` plus manual PR instructions and keep `outcome` as `completed`.
     - If step (2) fails, do not remove worktree; set `outcome` to `failed` and include remediation.
+    - Whenever setting `outcome: failed` for any reason (escalation, schema failure, loop limit exceeded, or any other stop condition): ⛔ **MANDATORY LOG**: invoke the `logger` subagent: `RunId={runId}. EventType=run-failed. WorkspaceRoot={absolute workspace root path}.` Do this immediately before stopping.
     Update `run.status.json` with final `outcome`.
 
 ## Paths
