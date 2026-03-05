@@ -254,6 +254,7 @@ Before creating the handoff for **plan-decomposer**, check whether the user shou
      >
      > Reply with 1, 2, or 3.
 
+   - **Parse the user's response by its leading digit only** — ignore any additional words (e.g. "1 yes", "1 continue", "2 ok" all count as the digit). If the response starts with `1`, it is Choice [1]. If it starts with `2`, it is Choice [2]. If it starts with `3`, it is Choice [3] followed by the cap number.
    - Record the user's choice in `run.status.json` under `decompositionConfirmation`.
    - **Choice [1]**: proceed normally — no override fields needed in the handoff.
    - **Choice [2]**: add `context.overridePassthrough: true` to the plan-decomposer handoff. The decomposer emits 1 passthrough sub-plan regardless of threshold.
